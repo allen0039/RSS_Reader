@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src * data:; script-src 'self';" />
+  <title>RSS 阅读器</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <span class="app-title">📰 RSS 阅读器</span>
+      <button id="btn-add-feed" title="添加订阅源">+</button>
+    </div>
+
+    <div id="feed-list">
+      <div class="feed-all-item active" data-id="all">
+        <span>🌐 全部文章</span>
+      </div>
+      <!-- feed items injected by JS -->
+    </div>
+
+    <div id="sidebar-footer">
+      <button id="btn-settings">⚙️ 设置</button>
+    </div>
+  </div>
+
+  <!-- ── Article List Panel ──────────────────────────────────────────────── -->
+  <div id="article-list-panel">
+    <div id="list-header">
+      <span id="list-title">全部文章</span>
+      <button id="btn-refresh" title="刷新">↻</button>
+    </div>
+    <div id="search-bar">
+      <input id="search-input" type="text" placeholder="搜索文章…" />
+    </div>
+    <div id="article-list">
+      <div id="list-empty">
+        <div class="empty-icon">📭</div>
+        <span>暂无文章，请添加订阅源</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Reader Panel ────────────────────────────────────────────────────── -->
+  <div id="reader-panel">
+    <div id="reader-toolbar">
+      <button class="toolbar-btn" id="btn-summary" disabled>✨ AI 摘要</button>
+      <button class="toolbar-btn" id="btn-translate" disabled>🌏 AI 翻译</button>
+      <div class="toolbar-sep"></div>
+      <button class="toolbar-btn" id="btn-digest">📋 生成日报</button>
+      <button class="toolbar-btn" id="btn-push-tg" style="display:none">✈️ 推送 Telegram</button>
+      <div class="toolbar-sep"></div>
+      <button id="btn-open-link" style="display:none">↗ 在浏览器中打开</button>
+    </div>
+    <div id="reader-content">
+      <div id="reader-placeholder">
+        <div class="ph-icon">📖</div>
+        <p>选择左侧文章开始阅读</p>
+      </div>
+
+      <div id="article-view" style="display:none">
+        <div id="article-header">
+          <div id="article-title"></div>
+          <div id="article-meta"></div>
+        </div>
+
+        <div id="ai-result-box">
+          <div id="ai-result-label">
+            <span id="ai-result-mode-label">AI 摘要</span>
+            <button class="close-ai" id="btn-close-ai">✕</button>
+          </div>
+          <div id="ai-result-text"></div>
+        </div>
+
+        <div id="article-body"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Add Feed Modal ──────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-add-feed">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>添加 RSS 订阅源</h2>
+      <button class="modal-close" data-modal="modal-add-feed">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>订阅源 URL</label>
+        <input type="url" id="input-feed-url" placeholder="https://example.com/feed.xml" />
+        <div class="hint">支持 RSS 2.0 / Atom 格式</div>
+      </div>
+      <div class="form-group">
+        <label>自定义名称（可选）</label>
+        <input type="text" id="input-feed-name" placeholder="留空则使用 Feed 标题" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal="modal-add-feed">取消</button>
+      <button class="btn btn-primary" id="btn-confirm-add-feed">添加并获取</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Settings Modal ─────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <h2>设置</h2>
+      <button class="modal-close" data-modal="modal-settings">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="settings-tabs">
+        <button class="settings-tab active" data-tab="tab-ai">AI 模型</button>
+        <button class="settings-tab" data-tab="tab-feeds">订阅管理</button>
+        <button class="settings-tab" data-tab="tab-tg">Telegram</button>
+        <button class="settings-tab" data-tab="tab-general">通用</button>
+      </div>
+
+      <!-- AI Settings -->
+      <div class="settings-section active" id="tab-ai">
+        <div class="form-group">
+          <label>API Base URL</label>
+          <input type="url" id="cfg-base-url" placeholder="https://api.openai.com/v1" />
+          <div class="hint">兼容 OpenAI 格式的接口地址，末尾无需 /</div>
+        </div>
+        <div class="form-group">
+          <label>API Key</label>
+          <input type="password" id="cfg-api-key" placeholder="sk-…" />
+        </div>
+        <div class="form-group">
+          <label>模型名称</label>
+          <input type="text" id="cfg-model" placeholder="gpt-4o-mini" />
+          <div class="hint">例如：gpt-4o、gpt-4o-mini、deepseek-chat、qwen-plus 等</div>
+        </div>
+        <div class="form-group">
+          <label>摘要提示词</label>
+          <textarea id="cfg-summary-prompt" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>翻译提示词</label>
+          <textarea id="cfg-translate-prompt" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- Telegram Settings -->
+      <div class="settings-section" id="tab-tg">
+        <div class="form-group">
+          <label>Bot Token</label>
+          <input type="password" id="cfg-tg-token" placeholder="123456789:ABCdefGHI..." />
+          <div class="hint">从 @BotFather 获取，格式为 数字:字符串</div>
+        </div>
+        <div class="form-group">
+          <label>Chat ID</label>
+          <input type="text" id="cfg-tg-chatid" placeholder="-100xxxxxxxxx 或 @频道名" />
+          <div class="hint">可以是用户 ID、群组 ID 或频道用户名</div>
+        </div>
+        <div class="form-group">
+          <label>日报摘要提示词</label>
+          <textarea id="cfg-tg-prompt" rows="3"></textarea>
+          <div class="hint">用于对每篇文章生成简短摘要的 AI 提示词</div>
+        </div>
+        <div class="form-group">
+          <label>每个订阅源最多文章数</label>
+          <input type="number" id="cfg-tg-max" min="1" max="20" placeholder="5" />
+          <div class="hint">生成日报时每个订阅源取最新的 N 篇文章</div>
+        </div>
+      </div>
+
+      <!-- Feeds Management -->
+      <div class="settings-section" id="tab-feeds">
+        <div id="feeds-manage-list"></div>
+        <div class="hint" style="margin-top:8px">在侧边栏点击 + 可添加新订阅源</div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn btn-secondary" id="btn-export-feeds" style="flex:1">📤 导出订阅源</button>
+          <button class="btn btn-secondary" id="btn-import-feeds" style="flex:1">📥 导入订阅源</button>
+        </div>
+      </div>
+
+      <!-- General Settings -->
+      <div class="settings-section" id="tab-general">
+        <div class="form-group">
+          <label>应用主题</label>
+          <div class="theme-selector">
+            <button class="theme-btn" data-theme="light" title="白色主题">
+              <span class="theme-icon">☀️</span>
+              <span>白色</span>
+            </button>
+            <button class="theme-btn" data-theme="dark" title="黑色主题">
+              <span class="theme-icon">🌙</span>
+              <span>黑色</span>
+            </button>
+            <button class="theme-btn" data-theme="system" title="跟随系统">
+              <span class="theme-icon">💻</span>
+              <span>跟随系统</span>
+            </button>
+          </div>
+          <div class="hint">选择应用的外观主题，更改后立即生效</div>
+        </div>
+        <div class="form-group" style="margin-top:24px">
+          <label>数据备份与恢复</label>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+            <button class="btn btn-secondary" id="btn-create-backup" style="width:100%;justify-content:center">
+              💾 创建全量备份（订阅源 + AI配置 + Telegram配置）
+            </button>
+            <button class="btn btn-secondary" id="btn-restore-backup" style="width:100%;justify-content:center">
+              📂 从备份文件恢复
+            </button>
+          </div>
+          <div class="hint" style="margin-top:8px">备份文件包含所有订阅源、AI设置和Telegram设置，恢复后需重启应用</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal="modal-settings">取消</button>
+      <button class="btn btn-primary" id="btn-save-settings">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Digest Modal ───────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-digest">
+  <div class="modal" style="width:660px;max-height:80vh;display:flex;flex-direction:column">
+    <div class="modal-header">
+      <h2>📋 RSS 日报预览</h2>
+      <button class="modal-close" data-modal="modal-digest">✕</button>
+    </div>
+    <div class="modal-body" style="flex:1;overflow:hidden;display:flex;flex-direction:column;gap:8px">
+      <div id="digest-status" style="font-size:12px;color:var(--overlay)"></div>
+      <textarea id="digest-content" rows="20" style="flex:1;resize:none;font-family:monospace;font-size:12px;background:var(--mantle);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:10px;line-height:1.6" readonly></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" data-modal="modal-digest">关闭</button>
+      <button class="btn btn-secondary" id="btn-digest-copy">复制文本</button>
+      <button class="btn btn-primary" id="btn-digest-send">✈️ 推送到 Telegram</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ──────────────────────────────────────────────────────────────── -->
+<div id="toast"></div>
+
+<script src="renderer.js"></script>
+</body>
+</html>

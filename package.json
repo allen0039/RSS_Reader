@@ -1,0 +1,57 @@
+{
+  "name": "rss-mac",
+  "version": "1.0.1",
+  "description": "Mac RSS Reader with AI",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac",
+    "build:arm64": "electron-builder --mac --arm64",
+    "build:x64": "electron-builder --mac --x64",
+    "dist": "electron-builder --mac --arm64 && electron-builder --mac --x64"
+  },
+  "build": {
+    "appId": "com.rss-mac.app",
+    "productName": "RSS Reader",
+    "icon": "icon.icns",
+    "mac": {
+      "category": "public.app-category.news",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "title": "RSS Reader",
+      "artifactName": "RSS-Reader-${version}-${arch}.dmg",
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "node_modules/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "electron-store": "^8.1.0",
+    "rss-parser": "^3.13.0"
+  }
+}
