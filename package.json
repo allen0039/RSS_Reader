@@ -1,6 +1,6 @@
 {
   "name": "rss-mac",
-  "version": "1.0.1",
+  "version": "1.0.14",
   "description": "Mac RSS Reader with AI",
   "main": "main.js",
   "scripts": {
@@ -28,7 +28,7 @@
     },
     "dmg": {
       "title": "RSS Reader",
-      "artifactName": "RSS-Reader-${version}-${arch}.dmg",
+      "artifactName": "RSS-Reader-v${version}-macOS-${arch}.dmg",
       "window": {
         "width": 540,
         "height": 380

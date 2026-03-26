@@ -207,6 +207,20 @@ html, body {
 }
 .feed-item:hover .feed-delete { opacity: 1; }
 
+.feed-item .feed-collapse {
+  background: none;
+  border: none;
+  color: var(--overlay);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 2px;
+}
+
+.feed-item .feed-collapse:hover { color: var(--text); }
+
+.fresh-cat-item { padding-left: 20px; }
+.fresh-feed-item { padding-left: 34px; }
+
 .feed-all-item {
   display: flex;
   align-items: center;
@@ -339,6 +353,37 @@ html, body {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.article-card .ac-layout {
+  display: block;
+}
+
+.article-card .ac-layout.has-thumb {
+  display: grid;
+  grid-template-columns: 1fr 92px;
+  gap: 10px;
+  align-items: start;
+}
+
+.article-card .ac-main {
+  min-width: 0;
+}
+
+.article-card .ac-thumb {
+  width: 92px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+}
+
+.article-card .ac-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 .article-card .ac-meta {
   font-size: 11px;
@@ -514,7 +559,15 @@ html, body {
 #article-body p { margin: .8em 0; }
 #article-body a { color: var(--blue); text-decoration: none; }
 #article-body a:hover { text-decoration: underline; }
-#article-body img { max-width: 100%; border-radius: var(--radius); margin: .8em 0; }
+#article-body img {
+  max-width: 100%;
+  width: auto !important;
+  height: auto !important;
+  max-height: 72vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  margin: .8em 0;
+}
 #article-body code {
   background: var(--bg-2);
   border-radius: var(--radius-sm);
@@ -685,6 +738,99 @@ html, body {
 
 .settings-section { display: none; }
 .settings-section.active { display: block; }
+
+.backup-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+  margin-top: 8px;
+  background: var(--bg-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--subtext);
+}
+
+.checkbox-row input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Unread indicators ────────────────────────────────────────────────────── */
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--blue);
+  color: var(--bg-2);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  margin-left: auto;
+  margin-right: 4px;
+  flex-shrink: 0;
+  opacity: 0.6;
+  background: var(--bg-3);
+  color: var(--subtext);
+  font-weight: 600;
+}
+
+.feed-item {
+  position: relative;
+}
+
+.unread-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--blue);
+  flex-shrink: 0;
+  margin-right: 2px;
+  vertical-align: middle;
+  position: absolute;
+  left: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.article-card {
+  position: relative;
+}
+
+.article-card.unread .ac-title {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.article-card:not(.unread) .ac-title {
+  color: var(--subtext);
+  font-weight: 400;
+}
+
+.article-card.unread {
+  border-left: 2px solid var(--blue);
+}
+
+.article-card:not(.unread) {
+  border-left: 2px solid transparent;
+}
+
+/* range slider label */
+input[type="range"] {
+  accent-color: var(--blue);
+}
 
 /* ── Toast ─────────────────────────────────────────────────────────────────── */
 #toast {
